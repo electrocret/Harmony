@@ -3,7 +3,7 @@ Class module_variablemanager extends module_base_trigger{
 	#include *i %A_ScriptDir%\Generated\extension_variablemanager.ahk
 	static module_version:= 1.0
 	static module_about:="VariableManager Handles the insertion of Variables, and the naming of Variables. It also maintains a registry of Variable Functions`nCreated by Electrocret"
-	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/VariableCore.ahk"
+	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/VariableManager.ahk"
 	core_file()	{
 		return A_LineFile
 	}

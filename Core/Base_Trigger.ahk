@@ -1,5 +1,6 @@
 Class module_base_trigger extends module_base {
 	static module_base_trigger_module_about:="Base Trigger is a base for trigger modules to be built off of. It consolidates a trigger event into a string then associates Actions with that trigger string. `nBy Electrocret"
+	static module_base_trigger_module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/Base_Trigger.ahk"
 	core_file()	{
 		return A_LineFile
 	}

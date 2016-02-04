@@ -13,7 +13,7 @@ Class module_actionmanager extends module_base{
 	#include *i %A_ScriptDir%\Generated\Extension_actionmanager.ahk
 	static module_version:= 1.0
 	static module_about:="ActionManager Handles the execution of Actions and maintains a registry of Action Functions."
-	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/ActionCore.ahk"
+	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/ActionManager.ahk"
 	module_init()	{
 		this.datastore_Set("Category","module","Core")
 		Action_Functions:=this.datastore_get("Action_Functions","",Array("Test","None"))

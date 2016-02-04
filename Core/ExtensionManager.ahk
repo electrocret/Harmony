@@ -1,6 +1,7 @@
 Class module_extensionmanager extends module_base{
 #include *i %A_ScriptDir%\Generated\Extension_extensionmanager.ahk
 	static module_about:="Extension Manager Manages Extensions to add/remove functionality from modules. `nBy Electrocret"
+	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/ExtensionManager.ahk"
 		core_file()	{
 		return A_LineFile
 	}

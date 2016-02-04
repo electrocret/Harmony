@@ -2,7 +2,7 @@
 Class module_includer extends module_base{
 	static module_version:= 1.0
 	static module_about:="Includer handles the addition of Action/Variable/Trigger Scripts to the Core Script.`nCreated by Electrocret"
-	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/IncludeDependency.ahk"
+	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/Includer.ahk"
 	static Default_Include_Types:="action,variable,trigger"
 	static include_dependency:=""
 	static module_initialize_level:=1

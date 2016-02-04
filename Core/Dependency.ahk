@@ -9,6 +9,7 @@ class module_dependency extends module_base{
 	static module_about:="Dependency records and tracks dependencies among scripts on one another, and ensures that the dependencies are being fulfilled.`nCreated by Electrocret"
 	static module_version:= 1.0
 	static module_datastore_default:="file"
+	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/Dependency.ahk"
 	static DependentBuildHandler,DependentBuildName,DependentBuildArray:=Array(),module_initialize_level:=2
 	#include *i %A_ScriptDir%\Generated\Extension_dependency.ahk
 	core_file()	{

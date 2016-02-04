@@ -39,7 +39,7 @@ Class module_manager extends module_base {
 	static module_datastore_default:="file"
 	static module_version:=1.0
 	static module_about:="Manager maintains a registry of all modules, and coordinates their startup and configuration. `nCreated by Electrocret"
-	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/ModuleCore.ahk"
+	static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/HarmonyCore.ahk"
 	static module_initialize_level:=1
 	static module_configurable_tray:=1
 	core_file()	{

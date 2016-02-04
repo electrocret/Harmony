@@ -1,7 +1,7 @@
 Class module_triggermanager extends module_base{
 static Triggermodules:=Array(), triggers:=array(),module_initialize_level:=8
 static module_version:= 1.0
-;static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/TriggerCore.ahk"
+static module_UpdateURL:="https://github.com/electrocret/Harmony/blob/master/Core/TriggerManager.ahk"
 	static module_about:="Trigger Manager creates an easy interface with compatible Trigger Modules to create and edit Triggers. `nBy Electrocret"	
 		core_file()	{
 		return A_LineFile
