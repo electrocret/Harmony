@@ -94,6 +94,7 @@ Class module_includer extends module_base{
 		FileAppend, %endingtext%, %A_ScriptDir%\generated\Includer_Includes.ahk
 	}
 	AddInclude(Name,Type_include)	{
+	;Need to rewrite so it checks for conflict before adding include
 		this.module_checkinit()
 		Type_include:=Type_include == "" ? "#root#":Type_include
 		if(this.hook(A_thisFunc,Name,Type_include))
@@ -319,10 +320,10 @@ Class module_includer extends module_base{
 		DownloadURL:=this.module_DDLLink(DownloadURL)
 		tempfile:=module_manager.datastore_get("Temp","Core_Directory") "\Includer_Download.ahk"
 		UrlDownloadToFile, %DownloadURL%, %tempfile%
-		if(this.module_scriptfile_check_valid(tempfile))
+		if(!isobject(this.module_scriptfile_syntax(tempfile)))
 		{
-			fName:=this.module_scriptfile_comment_value(tempfile,"Includer_Name")
-			fType_include:=this.module_scriptfile_comment_value(tempfile,"Includer_Type")
+			fName:=this.module_scriptfile_var(tempfile,"Includer_Name")
+			fType_include:=this.module_scriptfile_var(tempfile,"Includer_Type")
 			Name:=fName==""?Name:fName
 			Type_include:=fType_include==""?Type_include:fType_include
 			if(Name != "" and Type_Include != "")

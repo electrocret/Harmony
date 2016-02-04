@@ -102,6 +102,8 @@ Class module_manager extends module_base {
 			}
 			;##### Section Finishes Pre-Init ###
 			this.pre_initialized:=1	;Marks Core as Pre-Initialized
+			this.module_checkinit()
+			this.Core_configmode_check_reload()
 			this.Core_func_all_exec("module_checkinit") ;Performs Module Pre-Init
 			this.config_save()
 			this.Core_configmode_check_reload()
@@ -880,7 +882,7 @@ Class module_base {
 		}
 		return 0
 	}
-	module_scriptfile_check_syntax(Filename)	{
+	module_scriptfile_syntax(Filename,displayerror:=0)	{
 		;Codes: -1=Unknown error, 0=File does not exist, 1=Unknown Action, 2=Duplicate class, 3=Duplicate Function, 4= Duplicate Declaration, 5= Duplicate Labels, 6= Function cannot contain functions,
 		ifExist, %Filename%		
 		{
@@ -897,16 +899,87 @@ Class module_base {
 			shortenederror:=substr(fullerror,InStr(fullerror," (")+2)
 			ferror.lineerror:="Line: " substr(shortenederror,1,InStr(shortenederror,")")-1), ferror.errortype:=substr(shortenederror,InStr(shortenederror,"==> ")+4,inStr(shortenederror,"`n")-(InStr(shortenederror,"==> ")+5)),	ferror.errorspecific:=substr(shortenederror,InStr(shortenederror,"Specifically: ")+14,inStr(shortenederror,"`n",false,InStr(shortenederror,"Specifically: "))-(InStr(shortenederror,"Specifically: ")+15)),	ferror.fullerror:=fullerror, ferror.shortenederror:=shortenederror
 			ferror.code:=ferror.errortype == "This line does not contain a recognized action." ? 1: ferror.errortype == "Duplicate class definition."?2: ferror.errortype == "Duplicate function definition."?3:ferror.errortype == "Duplicate declaration." ? 4 : ferror.errortype == "Duplicate label."? 5: ferror.errortype == "Functions cannot contain functions."? 6 : -1
+			if(displayerror)
+				msgbox %fullerror%
 			return ferror
-			}
+		}
 		return {code:0,errortype:"File does not exist", errorspecific: Filename}
+	}
+	module_scriptfile_comment(Filename,VariableName)	{
+		FileRead, filecontents, %Filename%
+		filecontents.=" `r" A_Tab
+		StringLower, lowerfilecontents,filecontents
+		search:=";" Format("{:L}",VariableName) ":="
+		StringGetPos,startpos,lowerfilecontents,%search%
+		if(!ErrorLevel)
+		{	
+			startpos:=startpos+StrLen(search)+1
+			StringGetPos,spacepos,lowerfilecontents,%A_Space%,,%startpos%
+			StringGetPos,tabpos,lowerfilecontents,%A_Tab%,,%startpos%
+			StringGetPos,returnpos,lowerfilecontents,`r,,%startpos%
+			endpos:=spacepos < tabpos and spacepos < returnpos? spacepos : returnpos < tabpos ?returnpos:tabpos
+			endpos++
+			length:=endpos-startpos
+			output:=substr(filecontents,startpos,length)
+		}
+		return output
+	}
+	module_scriptfile_module_var(Filename,ModuleName,Variable,namespace,defaultvalue:="")	{
+		if(module_manager.Core_sandbox)
+			return defaultvalue
+		if(isobject(ModuleName))
+			ModuleName:=ModuleName.__Class
+		if(!FileExist(Filename))
+		{
+			Filename:=module_includer.getIncludedFile("module_manager",ModuleName)
+			if(!FileExist(Filename))
+				return defaultvalue
+		}
+		outputfile:=module_manager.datastore_get("Temp","Core_Directory") "\sandbox_module_var.txt"
+		testfilecontent.=ModuleName ".module_init()`nvalue:=module_base.module_format_toString(" ModuleName ".datastore_get(""" variable """,""" namespace ""","""",""any""))`nFileAppend , %value%, " outputfile
+		normalmodulefile:=module_includer.getIncludedFile("module_manager",ModuleName)
+		baseincludes:=module_manager.Core_base_modules()
+		Loop % baseincludes.MaxIndex()
+		{
+			baseincludefile:=module_includer.getIncludedFile("module_manager",baseincludes[A_Index])
+			if(baseincludefile != normalmodulefile)
+				testfilecontent.="#Include *i " baseincludefile "`n"
+		}
+		this.module_scriptfile_sandbox(Filename,testfilecontent)
+		FileRead, output, %outputfile%
+		filedelete %outputfile%
+		return output==""?defaultvalue:output
+	}
+	module_scriptfile_var(Filename,Variable,DefaultValue:=""){
+		if(!module_manager.Core_sandbox)
+		{
+			outputfile:=module_manager.datastore_get("Temp","Core_Directory") "\sandbox_var.txt"
+			this.module_scriptfile_sandbox(Filename,"value:=" Variable "`nFileAppend , %value%, " outputfile)
+			FileRead, output, %outputfile%
+			FileDelete, %outputfile%
+		}
+		return output==""?defaultvalue:output
+	}
+	module_scriptfile_sandbox(Filename,sandbox_testscript)	{
+		if(module_manager.Core_sandbox)
+			return
+		cachedir:=module_manager.datastore_get("Temp","Core_Directory")
+		sandboxtestfile:=cachedir "\sandbox_testfile.ahk"
+		sandboxfile:=cachedir "\sandbox.ahk"
+		FileCopy %Filename%,%sandboxtestfile%,1
+		sandbox_testscript:="#Include *i " sandboxtestfile "`nmodule_Manager.Core_sandbox:=1`n" sandbox_testscript "`nExitApp"
+		fileappend %sandbox_testscript%, %sandboxfile%
+		out:=this.module_scriptfile_syntax(sandboxfile)
+		filedelete %sandboxfile%
+		filedelete %sandboxtestfile%
+		return out
 	}
 	module_update_extract(variable,namespace,defaultvalue:="")	{
 		if(module_manager.Core_sandbox)
 			return defaultvalue
 		UpdateFile:=this.module_update_file()
 		ifExist, %UpdateFile%
-			return this.module_sandbox_extract(Variable,Namespace, defaultvalue,UpdateFile)
+			return this.module_scriptfile_module_var(UpdateFile,this,Variable,Namespace, defaultvalue)
 		return defaultvalue
 	}
 	module_update_file(clear:=0)	{
@@ -926,43 +999,12 @@ Class module_base {
 		}
 		return updatefile
 	}
-	module_sandbox_extract(Variable,namespace,defaultvalue:="",modulefile:="")	{
-		if(module_manager.Core_sandbox)
-			return defaultvalue
-		cachedir:=module_manager.datastore_get("Temp","Core_Directory")
-		sandboxfile:=cachedir "\sandbox_" this.__Class ".ahk"
-		extractfile:=cachedir "\extract_sandbox_" this.__Class
-		if(!FileExist(modulefile))
-		{
-			modulefile:=module_includer.getIncludedFile("module_manager",this.__Class)
-			if(!FileExist(modulefile))
-				return defaultvalue
-		}
-		FileCopy %modulefile%,%sandboxfile%,1
-		normalmodulefile:=module_includer.getIncludedFile("module_manager",this.__Class)
-		baseincludes:=module_manager.Core_base_modules()
-		Loop % baseincludes.MaxIndex()
-		{
-			baseincludefile:=module_includer.getIncludedFile("module_manager",baseincludes[A_Index])
-			if(baseincludefile != normalmodulefile)
-				testfilecontent.="#Include *i " baseincludefile "`n"
-		}
-		testfilecontent.="#Include *i " sandboxfile "`nmodule_Manager.Core_sandbox:=1`n" this.__Class ".module_init()`nvalue:=module_base.module_format_toString(" this.__Class ".datastore_get(""" variable """,""" namespace ""","""",""any""))`nFileAppend , %value%, " extractfile ".txt`nExitApp"
-		fileappend %testfilecontent%, %extractfile%.ahk
-		runwait %A_AhkPath% "%extractfile%.ahk"
-		FileRead, output, %extractfile%.txt
-		output:=this.module_format_toArray(output)
-		filedelete %extractfile%.txt
-		filedelete %extractfile%.ahk
-		filedelete %sandboxfile%
-		return output==""?defaultvalue:output
-	}
 	module_isCompatible(ModuleName:="",Filename:="")	{
 		Modulename:=ModuleName==""?this.__Class:module_manager.Core_format_module_natural(ModuleName)
 		Filename:=FileExist(Filename)?Filename:module_includer.getIncludedFile("module_manager",Modulename)
 		if(!FileExist(Filename))
 			return 0
-		if(!isobject(this.module_scriptfile_check_syntax(Filename)))
+		if(!isobject(this.module_scriptfile_syntax(Filename)))
 			return 0
 		FileRead, filecontent, %Filename%
 		Stringlower, filecontent,filecontent
@@ -1444,7 +1486,7 @@ Class module_base {
 			if(!FileExist(ExtensionFile))
 				return 0
 		}
-		if(!isobject(this.module_scriptfile_check_syntax(ExtensionFile)))
+		if(!isobject(this.module_scriptfile_syntax(ExtensionFile)))
 			return 0
 		FileRead, filecontent, %ExtensionFile%
 		Stringlower, filecontent,filecontent
