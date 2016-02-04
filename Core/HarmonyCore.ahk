@@ -731,6 +731,7 @@ Class module_base {
 				this.datastore_set("PostInitialized","module",0)
 				this.datastore_set_namespace_Datastore("extension_info","file")
 				this.datastore_set_namespace_Datastore("extension","this_module")
+				this.datastore_add_Variable("module","About","Registered","PreInitialized","AutoUpdated","Initialized","PostInitialize","initialize_level","Category","Config_File","Version","Unreg_Reload","UpdateURL","ChangeLog","datastore_Default")
 				this.config_load()
 				
 			}
@@ -813,7 +814,6 @@ Class module_base {
 						init[ this.__Class]:=initlvl != -1? initlvl:3
 					this.Config_set_ConfigHelper_Datastore("file")
 					this.datastore_set_namespace_Datastore("module","file")
-					this.datastore_add_Variable("module","About","Registered","PreInitialized","AutoUpdated","Initialized","PostInitialize","initialize_level","Category","Config_File","Version","Unreg_Reload","UpdateURL","ChangeLog","datastore_Default")
 					this.datastore_add_Variable("module","Configurable")
 					confmode:=module_manager.datastore_get("Module_ConfigModes","Core")
 					Loop, Parse, confmode,`,
@@ -830,7 +830,6 @@ Class module_base {
 		if((!module_manager.datastore_get(module_manager.Core_format_module_Readable(this.__Class),"AutoUpdate",1) or this.datastore_get("UpdateURL","module") == "") and autoupdate == 1)
 			return 0
 		UpdateFile:=this.module_update_file(autoupdate== 0 or autoupdate == -1)
-		msgbox %UpdateFile%
 		ifExist, %UpdateFile%
 		{
 			if(autoupdate == 1)
